@@ -1,11 +1,11 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Support Calendar//
-X-WR-CALNAME:지원사업_마감일
+X-WR-CALNAME:지원사업_진행중
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] [경기] 포천시 2026년 사물인터
- 넷(IoT) 측정기기 부착 지원사업 재공고
-DTSTART;VALUE=DATE:20260424
+SUMMARY:[기업마당] [경기] 포천시 2026년 사물인터넷(IoT) 측
+ 정기기 부착 지원사업 재공고
+DTSTART;VALUE=DATE:20260417
 DTEND;VALUE=DATE:20260425
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
@@ -14,9 +14,9 @@ DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
  condition=&condition1=&keyword=&pblancId=PBLN_000000000120981
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] [강원] 2026년 강원 뷰티 in 도
- 쿄 행사 참가기업 모집 공고
-DTSTART;VALUE=DATE:20260428
+SUMMARY:[기업마당] [강원] 2026년 강원 뷰티 in 도쿄 행사 참
+ 가기업 모집 공고
+DTSTART;VALUE=DATE:20260413
 DTEND;VALUE=DATE:20260429
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
@@ -25,9 +25,9 @@ DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
  condition=&condition1=&keyword=&pblancId=PBLN_000000000120980
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] [경기] 시흥시 2026년 스타트업
-  투자유치 지원사업 모집 연장 공고
-DTSTART;VALUE=DATE:20260429
+SUMMARY:[기업마당] [경기] 시흥시 2026년 스타트업 투자유
+ 치 지원사업 모집 연장 공고
+DTSTART;VALUE=DATE:20260413
 DTEND;VALUE=DATE:20260430
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
@@ -36,9 +36,9 @@ DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
  condition=&condition1=&keyword=&pblancId=PBLN_000000000120979
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] [경기] 안산시 2026년 강소기업
-  육성 지원사업(3단계)신규지원 대상과제 공고
-DTSTART;VALUE=DATE:20260423
+SUMMARY:[기업마당] [경기] 안산시 2026년 강소기업 육성 지
+ 원사업(3단계)신규지원 대상과제 공고
+DTSTART;VALUE=DATE:20260410
 DTEND;VALUE=DATE:20260424
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
@@ -47,10 +47,10 @@ DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
  condition=&condition1=&keyword=&pblancId=PBLN_000000000120975
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] 산업혁신기반구축사업 (첨단 
- 방위산업용 고성능ㆍ고신뢰성 시스템반도체 부품 실증 
- 기반구축) 시제품제작 지원사업 공고
-DTSTART;VALUE=DATE:20260430
+SUMMARY:[기업마당] 산업혁신기반구축사업 (첨단 방위산업
+ 용 고성능ㆍ고신뢰성 시스템반도체 부품 실증 기반구축
+ ) 시제품제작 지원사업 공고
+DTSTART;VALUE=DATE:20260413
 DTEND;VALUE=DATE:20260501
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
@@ -59,9 +59,9 @@ DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200
  condition=&condition1=&keyword=&pblancId=PBLN_000000000120974
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:🔴 마감 [기업마당] [강원] 2026년 글로벌 강소기업
-  육성사업 지역자율프로그램 참가기업 모집 공고
-DTSTART;VALUE=DATE:20260430
+SUMMARY:[기업마당] [강원] 2026년 글로벌 강소기업 육성사
+ 업 지역자율프로그램 참가기업 모집 공고
+DTSTART;VALUE=DATE:20260413
 DTEND;VALUE=DATE:20260501
 DTSTAMP:20260420T140853Z
 DESCRIPTION:기업마당\nhttps://www.bizinfo.go.kr/sii/siia/selectSIIA200

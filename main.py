@@ -1,57 +1,59 @@
-from datetime import date, timedelta
+# main.py
+import json
+import os
+from collectors import collect_all
 
-from crawlers.bizinfo import crawl_bizinfo
-from crawlers.kstartup import crawl_kstartup
-from crawlers.modoo import crawl_modoo
-from calendar_builder import create_ics_files
-
-
-def fill_test_dates(notices):
-    today = date.today()
-
-    for i, n in enumerate(notices):
-        if not n.start_date:
-            n.start_date = today + timedelta(days=i)
-        if not n.end_date:
-            n.end_date = n.start_date + timedelta(days=7)
-
-    return notices
+SEEN_FILE = "seen_urls.json"
 
 
-def dedupe(notices):
-    result = []
-    seen = set()
+def load_seen_urls():
+    if not os.path.exists(SEEN_FILE):
+        return set()
+    try:
+        with open(SEEN_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return set(data)
+    except Exception:
+        return set()
 
-    for n in notices:
-        key = n.key()
-        if key in seen:
-            continue
-        seen.add(key)
-        result.append(n)
 
-    return result
+def save_seen_urls(urls):
+    with open(SEEN_FILE, "w", encoding="utf-8") as f:
+        json.dump(sorted(list(urls)), f, ensure_ascii=False, indent=2)
 
 
 def main():
-    notices = []
+    items = collect_all()
+    seen_urls = load_seen_urls()
 
-    notices += crawl_bizinfo()
-    notices += crawl_kstartup()
-    notices += crawl_modoo()
+    new_items = []
+    all_urls = set(seen_urls)
 
-    print("원본 수집 개수:", len(notices))
+    for item in items:
+        url = item.get("url", "").strip()
+        if not url:
+            continue
 
-    notices = fill_test_dates(notices)
-    notices = dedupe(notices)
+        if url not in seen_urls:
+            new_items.append(item)
 
-    print("중복 제거 후 개수:", len(notices))
+        all_urls.add(url)
 
-    create_ics_files(notices, "output")
+    print("=" * 80)
+    print(f"전체 수집 건수: {len(items)}")
+    print(f"신규 공고 건수: {len(new_items)}")
+    print("=" * 80)
 
-    print("완료!")
-    print("output/support_ongoing.ics")
-    print("output/support_start.ics")
-    print("output/support_deadline.ics")
+    for i, item in enumerate(new_items, 1):
+        print(f"[{i}] [{item['source']}] {item['title']}")
+        print(f"    URL: {item['url']}")
+        if item.get("region"):
+            print(f"    지역: {item['region']}")
+        if item.get("agency"):
+            print(f"    기관: {item['agency']}")
+        print()
+
+    save_seen_urls(all_urls)
 
 
 if __name__ == "__main__":
