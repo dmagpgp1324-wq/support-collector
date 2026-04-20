@@ -62,9 +62,6 @@ def extract_dates(text: str):
     return "", ""
 
 
-# ---------------------------
-# 1. K-스타트업
-# ---------------------------
 def fetch_kstartup():
     items = []
     seen = set()
@@ -78,7 +75,6 @@ def fetch_kstartup():
 
     blocks = html.split("<li")
     for block in blocks:
-        # 모집중 표시 위주로 추출
         if "D-" not in block and "마감일자" not in block:
             continue
 
@@ -101,7 +97,6 @@ def fetch_kstartup():
 
         start_date, end_date = extract_dates(block)
 
-        # 날짜가 없으면 D-day 기준으로라도 수집 허용
         item = build_item(
             source="K-스타트업",
             title=title,
@@ -126,9 +121,6 @@ def fetch_kstartup():
     return items
 
 
-# ---------------------------
-# 2. 기업마당
-# ---------------------------
 def fetch_bizinfo():
     items = []
     seen = set()
@@ -174,9 +166,6 @@ def fetch_bizinfo():
     return items
 
 
-# ---------------------------
-# 3. 모두의 창업
-# ---------------------------
 def fetch_modoo():
     items = []
     seen = set()
@@ -225,9 +214,6 @@ def fetch_modoo():
     return items
 
 
-# ---------------------------
-# 4. 전체 통합
-# ---------------------------
 def collect_all():
     all_items = []
 
