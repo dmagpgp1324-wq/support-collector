@@ -1,5 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 from collectors import collect_all
+import json
 
 app = Flask(__name__)
 
@@ -10,10 +11,13 @@ def health():
 @app.route("/support-notices", methods=["GET"])
 def support_notices():
     items = collect_all()
-    return jsonify({
-        "count": len(items),
-        "items": items
-    })
+    return Response(
+        json.dumps({
+            "count": len(items),
+            "items": items
+        }, ensure_ascii=False),
+        content_type="application/json; charset=utf-8"
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
