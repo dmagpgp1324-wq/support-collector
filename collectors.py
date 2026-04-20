@@ -1,4 +1,5 @@
 # collectors.py
+import re
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -11,6 +12,10 @@ def safe_get(url, timeout=20):
     res = requests.get(url, headers=HEADERS, timeout=timeout)
     res.raise_for_status()
     return res
+
+
+def clean_text(value):
+    return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
 def build_item(
@@ -26,17 +31,35 @@ def build_item(
     end_date=""
 ):
     return {
-        "source": source,
-        "title": title.strip(),
-        "summary": summary.strip(),
-        "content": content.strip(),
-        "region": region.strip(),
-        "agency": agency.strip(),
-        "category": category.strip(),
-        "url": url.strip(),
-        "start_date": start_date.strip(),
-        "end_date": end_date.strip(),
+        "source": clean_text(source),
+        "title": clean_text(title),
+        "summary": clean_text(summary),
+        "content": clean_text(content),
+        "region": clean_text(region),
+        "agency": clean_text(agency),
+        "category": clean_text(category),
+        "url": clean_text(url),
+        "start_date": clean_text(start_date),
+        "end_date": clean_text(end_date),
     }
+
+
+def extract_dates(text: str):
+    matches = re.findall(r"(20\d{2}[.\-/]\d{1,2}[.\-/]\d{1,2})", text or "")
+    cleaned = []
+    for m in matches:
+        m = m.replace(".", "-").replace("/", "-")
+        parts = m.split("-")
+        if len(parts) == 3:
+            yyyy = parts[0]
+            mm = parts[1].zfill(2)
+            dd = parts[2].zfill(2)
+            cleaned.append(f"{yyyy}-{mm}-{dd}")
+    if len(cleaned) >= 2:
+        return cleaned[0], cleaned[1]
+    if len(cleaned) == 1:
+        return cleaned[0], cleaned[0]
+    return "", ""
 
 
 # ---------------------------
@@ -48,37 +71,54 @@ def fetch_kstartup():
 
     url = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do"
     res = safe_get(url)
-    soup = BeautifulSoup(res.text, "html.parser")
+    html = res.text
 
-    text = soup.get_text("\n", strip=True)
-    links = soup.find_all("a", href=True)
+    soup = BeautifulSoup(html, "html.parser")
+    page_text = soup.get_text("\n", strip=True)
 
-    for a in links:
-        title = a.get_text(" ", strip=True)
-        href = a["href"].strip()
+    blocks = html.split("<li")
+    for block in blocks:
+        # 모집중 표시 위주로 추출
+        if "D-" not in block and "마감일자" not in block:
+            continue
 
+        title_match = re.search(r'class="tit"[^>]*>([\s\S]*?)</a>', block, re.I)
+        if not title_match:
+            title_match = re.search(r"<a[^>]*>([\s\S]*?)</a>", block, re.I)
+        if not title_match:
+            continue
+
+        title = clean_text(re.sub(r"<[^>]+>", " ", title_match.group(1)))
         if not title or len(title) < 5:
             continue
 
+        href_match = re.search(r'<a[^>]+href="([^"]+)"', block, re.I)
+        href = href_match.group(1).strip() if href_match else url
         full_url = urljoin(url, href)
 
-        key = (title, full_url)
-        if key in seen:
-            continue
-        seen.add(key)
+        category_match = re.search(r'<span[^>]*class="[^"]*badge[^"]*"[^>]*>([\s\S]*?)</span>', block, re.I)
+        category = clean_text(re.sub(r"<[^>]+>", " ", category_match.group(1))) if category_match else "지원사업"
 
+        start_date, end_date = extract_dates(block)
+
+        # 날짜가 없으면 D-day 기준으로라도 수집 허용
         item = build_item(
             source="K-스타트업",
             title=title,
-            summary="",
-            content=text[:2000],
+            summary=category,
+            content=page_text[:3000],
             region=title,
             agency="",
-            category="지원사업",
+            category=category,
             url=full_url,
-            start_date="",
-            end_date="",
+            start_date=start_date,
+            end_date=end_date,
         )
+
+        key = (item["title"], item["url"])
+        if key in seen:
+            continue
+        seen.add(key)
 
         if is_target_item(item):
             items.append(item)
@@ -100,32 +140,33 @@ def fetch_bizinfo():
     links = soup.find_all("a", href=True)
 
     for a in links:
-        title = a.get_text(" ", strip=True)
+        title = clean_text(a.get_text(" ", strip=True))
         href = a["href"].strip()
 
-        if not title:
-            continue
-
-        # 너무 짧은 텍스트 제거
-        if len(title) < 5:
+        if not title or len(title) < 5:
             continue
 
         full_url = urljoin(url, href)
-
-        if full_url in seen:
-            continue
-        seen.add(full_url)
+        parent_text = clean_text(a.parent.get_text(" ", strip=True)) if a.parent else title
+        start_date, end_date = extract_dates(parent_text)
 
         item = build_item(
             source="기업마당",
             title=title,
-            summary="",
-            content="",
-            region=title,     # 제목에 지역이 들어가는 경우 대비
+            summary="기업마당 공고",
+            content=parent_text,
+            region=title,
             agency="",
             category="지원사업",
             url=full_url,
+            start_date=start_date,
+            end_date=end_date,
         )
+
+        key = (item["title"], item["url"])
+        if key in seen:
+            continue
+        seen.add(key)
 
         if is_target_item(item):
             items.append(item)
@@ -150,31 +191,33 @@ def fetch_modoo():
         links = soup.find_all("a", href=True)
 
         for a in links:
-            title = a.get_text(" ", strip=True)
+            title = clean_text(a.get_text(" ", strip=True))
             href = a["href"].strip()
 
-            if not title:
-                continue
-
-            if len(title) < 4:
+            if not title or len(title) < 4:
                 continue
 
             full_url = urljoin(SOURCES["modoo"]["base_url"], href)
-
-            if full_url in seen:
-                continue
-            seen.add(full_url)
+            parent_text = clean_text(a.parent.get_text(" ", strip=True)) if a.parent else title
+            start_date, end_date = extract_dates(parent_text + " " + title)
 
             item = build_item(
                 source="모두의 창업",
                 title=title,
-                summary="",
-                content="",
+                summary="창업지원",
+                content=parent_text,
                 region=title,
                 agency="",
                 category="창업지원",
                 url=full_url,
+                start_date=start_date,
+                end_date=end_date,
             )
+
+            key = (item["title"], item["url"])
+            if key in seen:
+                continue
+            seen.add(key)
 
             if is_target_item(item):
                 items.append(item)
@@ -206,15 +249,11 @@ def collect_all():
         except Exception as e:
             print(f"[오류] 모두의 창업 수집 실패: {e}")
 
-    # URL 기준 중복 제거
     dedup = {}
     for item in all_items:
         key = item.get("url") or f"{item.get('source')}::{item.get('title')}"
         dedup[key] = item
 
     results = list(dedup.values())
-
-    # 제목 기준 정렬
     results.sort(key=lambda x: (x.get("source", ""), x.get("title", "")))
-
     return results
