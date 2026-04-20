@@ -7,7 +7,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 CACHE_FILE = "support_cache.json"
-MIN_VALID_COUNT = 10  # 이 개수보다 적으면 비정상 응답으로 보고 캐시 유지
+MIN_VALID_COUNT = 10
 
 
 def load_cache():
@@ -32,10 +32,6 @@ def save_cache(items):
 
 
 def get_best_snapshot():
-    """
-    수집 결과가 흔들릴 수 있으므로 3번 시도해서
-    가장 많이 나온 결과를 사용
-    """
     snapshots = []
     errors = []
 
@@ -63,11 +59,9 @@ def support_notices():
     cached = load_cache()
     items, errors = get_best_snapshot()
 
-    # 정상적으로 충분히 많이 잡히면 캐시 갱신
     if len(items) >= MIN_VALID_COUNT:
         payload = save_cache(items)
     else:
-        # 비정상적으로 적게 잡히면 이전 캐시 유지
         payload = cached
         payload["warning"] = f"live_count={len(items)} too low, fallback to cache"
         if errors:
@@ -84,7 +78,7 @@ def refresh():
     items, errors = get_best_snapshot()
     payload = save_cache(items)
     if errors:
-      payload["errors"] = errors
+        payload["errors"] = errors
     return Response(
         json.dumps(payload, ensure_ascii=False),
         content_type="application/json; charset=utf-8"
