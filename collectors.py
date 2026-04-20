@@ -43,35 +43,45 @@ def build_item(
 # 1. K-스타트업
 # ---------------------------
 def fetch_kstartup():
-    """
-    네 기존 코드가 이미 K-스타트업 수집 중심으로 되어 있다면
-    이 함수 안에 기존 로직을 넣으면 된다.
-
-    아래는 '반환 포맷'만 맞추는 용도다.
-    """
     items = []
+    seen = set()
 
-    # ===== 여기부터 기존 K-스타트업 수집 로직 붙여넣기 =====
-    # 예시:
-    #
-    # raw_items = some_existing_kstartup_function()
-    # for r in raw_items:
-    #     item = build_item(
-    #         source="K-스타트업",
-    #         title=r.get("title", ""),
-    #         summary=r.get("summary", ""),
-    #         content=r.get("content", ""),
-    #         region=r.get("region", ""),
-    #         agency=r.get("agency", ""),
-    #         category=r.get("category", ""),
-    #         url=r.get("url", ""),
-    #         start_date=r.get("start_date", ""),
-    #         end_date=r.get("end_date", ""),
-    #     )
-    #     if is_target_item(item):
-    #         items.append(item)
-    #
-    # ===== 여기까지 기존 K-스타트업 수집 로직 붙여넣기 =====
+    url = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do"
+    res = safe_get(url)
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    text = soup.get_text("\n", strip=True)
+    links = soup.find_all("a", href=True)
+
+    for a in links:
+        title = a.get_text(" ", strip=True)
+        href = a["href"].strip()
+
+        if not title or len(title) < 5:
+            continue
+
+        full_url = urljoin(url, href)
+
+        key = (title, full_url)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        item = build_item(
+            source="K-스타트업",
+            title=title,
+            summary="",
+            content=text[:2000],
+            region=title,
+            agency="",
+            category="지원사업",
+            url=full_url,
+            start_date="",
+            end_date="",
+        )
+
+        if is_target_item(item):
+            items.append(item)
 
     return items
 
