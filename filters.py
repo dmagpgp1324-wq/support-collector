@@ -161,7 +161,7 @@ def is_noise_title(title: str) -> bool:
 
     if any(x in title for x in [
         "전체", "현황", "정보", "안내", "소개", "목록",
-        "통합", "조회", "검색", "결과", "뉴스레터"
+        "통합", "조회", "검색", "결과", "뉴스레터", "뉴스", "자료"
     ]):
         return True
 
@@ -194,7 +194,7 @@ def is_business_item(item: dict) -> bool:
 def is_real_notice(item: dict) -> bool:
     title = _clean(item.get("title", ""))
 
-    if not any(k in title for k in ["모집", "공고", "참여기업", "지원사업"]):
+    if not any(k in title for k in ["모집", "참여기업", "선정", "지원사업", "신청"]):
         return False
 
     if any(k in title for k in ["조회", "신청", "발급", "증명", "포털", "뉴스"]):

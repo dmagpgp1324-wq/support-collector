@@ -176,7 +176,7 @@ def fetch_bizinfo():
             end_date=end_date,
         )
 
-        key = (item["title"], item["url"])
+        key = item["title"]
         if key in seen:
             continue
         seen.add(key)
