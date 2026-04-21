@@ -86,7 +86,7 @@ BAD_KEYWORDS = [
     "자료이용 및 저작권보호",
     "기업업무 서식",
     "서식",
-    "온라인상회의실",
+    "온라인화상회의실",
     "웹접근성점검",
     "이메일무단수집거부",
     "입법·행정예고/고시",
@@ -99,6 +99,15 @@ BAD_KEYWORDS = [
     "javascript",
     "void(",
     "endbsns",
+    "조회",
+    "신청",
+    "발급",
+    "증명서",
+    "확인서",
+    "일자리포털",
+    "뉴스",
+    "메일",
+    "구독",
 ]
 
 HARD_BLOCK_KEYWORDS = [
@@ -109,10 +118,15 @@ HARD_BLOCK_KEYWORDS = [
     "서남권",
 ]
 
+GENERIC_BAD_TITLES = [
+    "기업마당 공고",
+    "사업공고",
+    "지원사업",
+    "공고",
+]
 
 def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", str(s or "")).strip()
-
 
 def _haystack(item: dict) -> str:
     return _clean(
@@ -127,6 +141,31 @@ def _haystack(item: dict) -> str:
         ])
     ).lower()
 
+def is_noise_title(title: str) -> bool:
+    title = _clean(title)
+
+    if not title or len(title) < 10:
+        return True
+
+    if any(k in title for k in HARD_BLOCK_KEYWORDS):
+        return True
+
+    if re.match(r"^분야\(\d+\)$", title):
+        return True
+
+    if re.search(r"\d+\s*건", title):
+        return True
+
+    if title in GENERIC_BAD_TITLES:
+        return True
+
+    if any(x in title for x in [
+        "전체", "현황", "정보", "안내", "소개", "목록",
+        "통합", "조회", "검색", "결과", "뉴스레터"
+    ]):
+        return True
+
+    return False
 
 def is_junk_item(item: dict) -> bool:
     title = _clean(item.get("title", ""))
@@ -141,23 +180,27 @@ def is_junk_item(item: dict) -> bool:
     if "javascript" in url.lower() or "void(" in url.lower():
         return True
 
-    if any(k in title for k in HARD_BLOCK_KEYWORDS):
-        return True
-
-    if re.match(r"^분야\(\d+\)$", title):
-        return True
-
     lower_title = title.lower()
+
     if any(k.lower() in lower_title for k in BAD_KEYWORDS):
         return True
 
     return False
 
-
 def is_business_item(item: dict) -> bool:
     hs = _haystack(item)
     return any(k.lower() in hs for k in GOOD_KEYWORDS)
 
+def is_real_notice(item: dict) -> bool:
+    title = _clean(item.get("title", ""))
+
+    if not any(k in title for k in ["모집", "공고", "참여기업", "지원사업"]):
+        return False
+
+    if any(k in title for k in ["조회", "신청", "발급", "증명", "포털", "뉴스"]):
+        return False
+
+    return True
 
 def is_target_region(item: dict) -> bool:
     hs = _haystack(item)
@@ -173,7 +216,6 @@ def is_target_region(item: dict) -> bool:
 
     return True
 
-
 def sanitize_item(item: dict) -> dict:
     return {
         "source": _clean(item.get("source", "")),
@@ -188,7 +230,6 @@ def sanitize_item(item: dict) -> dict:
         "end_date": _clean(item.get("end_date", "")),
     }
 
-
 def filter_items(items: list[dict]) -> list[dict]:
     results = []
 
@@ -198,7 +239,10 @@ def filter_items(items: list[dict]) -> list[dict]:
         if is_junk_item(item):
             continue
 
-        if is_noise_title(item.get("title")):
+        if is_noise_title(item.get("title", "")):
+            continue
+
+        if not is_real_notice(item):
             continue
 
         if not is_business_item(item):
@@ -210,32 +254,3 @@ def filter_items(items: list[dict]) -> list[dict]:
         results.append(item)
 
     return results
-
-def is_noise_title(title: str) -> bool:
-    title = (title or "").strip()
-
-    # 숫자형 통계 제거
-    if re.search(r"\d+\s*건", title):
-        return True
-
-    # 너무 짧거나 일반 텍스트
-    if len(title) < 10:
-        return True
-
-    # 메뉴형
-    if any(x in title for x in [
-        "전체", "현황", "정보", "안내", "소개", "목록",
-        "통합", "조회", "검색", "결과", "뉴스레터"
-    ]):
-        return True
-
-    # 포괄 제목 (쓰레기)
-    if title in [
-        "기업마당 공고",
-        "사업공고",
-        "지원사업",
-        "공고"
-    ]:
-        return True
-
-    return False

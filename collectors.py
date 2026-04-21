@@ -151,6 +151,10 @@ def fetch_bizinfo():
 
         full_url = urljoin(url, href)
 
+        if "bizinfo.go.kr" in full_url:
+            if not any(x in full_url for x in ["selectSI", "selectSIA", "selectBIZ"]):
+                continue
+
         # 기업마당은 상세공고 링크만 우선 수집
         if "bizinfo.go.kr" in full_url:
             if not any(x in full_url for x in ["selectSI", "selectSIA", "selectBIZ"]):
