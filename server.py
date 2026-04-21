@@ -79,6 +79,7 @@ def refresh():
     payload = save_cache(items)
     if errors:
         payload["errors"] = errors
+
     return Response(
         json.dumps(payload, ensure_ascii=False),
         content_type="application/json; charset=utf-8"

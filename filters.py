@@ -1,7 +1,6 @@
 # filters.py
 import re
 
-
 TARGET_REGIONS = [
     "강원", "강원도", "강원특별자치도",
     "경기", "경기도",
@@ -91,6 +90,7 @@ BAD_KEYWORDS = [
     "웹접근성점검",
     "이메일무단수집거부",
     "입법·행정예고/고시",
+    "입법 행정예고 고시",
     "자료실",
     "공지사항",
     "알림마당",
@@ -101,7 +101,6 @@ BAD_KEYWORDS = [
     "endbsns",
 ]
 
-# 🔥 강제 차단 (핵심)
 HARD_BLOCK_KEYWORDS = [
     "분야(",
     "분야",
@@ -133,28 +132,22 @@ def is_junk_item(item: dict) -> bool:
     title = _clean(item.get("title", ""))
     url = _clean(item.get("url", ""))
 
-    # ❌ 기본 조건
     if not title or len(title) < 8:
         return True
 
     if not url.startswith("http"):
         return True
 
-    # ❌ javascript 링크 차단
     if "javascript" in url.lower() or "void(" in url.lower():
         return True
 
-    lower_title = title.lower()
-
-    # ❌ 강제 차단 (제일 중요)
     if any(k in title for k in HARD_BLOCK_KEYWORDS):
         return True
 
-    # ❌ "분야(1234)" 패턴 완전 차단
-    if re.match(r'^분야\(\d+\)$', title):
+    if re.match(r"^분야\(\d+\)$", title):
         return True
 
-    # ❌ 메뉴 / 시스템 키워드 제거
+    lower_title = title.lower()
     if any(k.lower() in lower_title for k in BAD_KEYWORDS):
         return True
 
@@ -202,15 +195,12 @@ def filter_items(items: list[dict]) -> list[dict]:
     for item in items:
         item = sanitize_item(item)
 
-        # 1. 쓰레기 제거
         if is_junk_item(item):
             continue
 
-        # 2. 사업성 필터
         if not is_business_item(item):
             continue
 
-        # 3. 지역 필터
         if not is_target_region(item):
             continue
 
