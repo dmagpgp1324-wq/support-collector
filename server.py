@@ -2,12 +2,13 @@ from flask import Flask, jsonify, Response
 from collectors import collect_all
 import json
 import os
+import traceback
 from datetime import datetime
 
 app = Flask(__name__)
 
 CACHE_FILE = "support_cache.json"
-MIN_VALID_COUNT = 10
+MIN_VALID_COUNT = 5
 
 
 def load_cache():
@@ -41,6 +42,7 @@ def get_best_snapshot():
             snapshots.append(items)
         except Exception as e:
             errors.append(str(e))
+            errors.append(traceback.format_exc())
 
     if snapshots:
         best = max(snapshots, key=lambda x: len(x))
@@ -56,34 +58,66 @@ def health():
 
 @app.route("/support-notices", methods=["GET"])
 def support_notices():
-    cached = load_cache()
-    items, errors = get_best_snapshot()
+    try:
+        cached = load_cache()
+        items, errors = get_best_snapshot()
 
-    if len(items) >= MIN_VALID_COUNT:
-        payload = save_cache(items)
-    else:
-        payload = cached
-        payload["warning"] = f"live_count={len(items)} too low, fallback to cache"
+        if len(items) >= MIN_VALID_COUNT:
+            payload = save_cache(items)
+        else:
+            payload = cached
+            payload["warning"] = f"live_count={len(items)} too low, fallback to cache"
+
         if errors:
-            payload["errors"] = errors
+            payload["errors"] = errors[:5]
 
-    return Response(
-        json.dumps(payload, ensure_ascii=False),
-        content_type="application/json; charset=utf-8"
-    )
+        return Response(
+            json.dumps(payload, ensure_ascii=False),
+            content_type="application/json; charset=utf-8"
+        )
+    except Exception as e:
+        cached = load_cache()
+        payload = {
+            "count": cached.get("count", 0),
+            "items": cached.get("items", []),
+            "updated_at": cached.get("updated_at", ""),
+            "fatal_error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        return Response(
+            json.dumps(payload, ensure_ascii=False),
+            content_type="application/json; charset=utf-8",
+            status=200
+        )
 
 
 @app.route("/refresh", methods=["GET"])
 def refresh():
-    items, errors = get_best_snapshot()
-    payload = save_cache(items)
-    if errors:
-        payload["errors"] = errors
+    try:
+        items, errors = get_best_snapshot()
+        payload = save_cache(items)
 
-    return Response(
-        json.dumps(payload, ensure_ascii=False),
-        content_type="application/json; charset=utf-8"
-    )
+        if errors:
+            payload["errors"] = errors[:5]
+
+        return Response(
+            json.dumps(payload, ensure_ascii=False),
+            content_type="application/json; charset=utf-8"
+        )
+    except Exception as e:
+        cached = load_cache()
+        payload = {
+            "count": cached.get("count", 0),
+            "items": cached.get("items", []),
+            "updated_at": cached.get("updated_at", ""),
+            "fatal_error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        return Response(
+            json.dumps(payload, ensure_ascii=False),
+            content_type="application/json; charset=utf-8",
+            status=200
+        )
 
 
 if __name__ == "__main__":
