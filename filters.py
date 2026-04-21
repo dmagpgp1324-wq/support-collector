@@ -198,6 +198,9 @@ def filter_items(items: list[dict]) -> list[dict]:
         if is_junk_item(item):
             continue
 
+        if is_noise_title(item.get("title")):
+            continue
+
         if not is_business_item(item):
             continue
 
@@ -207,3 +210,32 @@ def filter_items(items: list[dict]) -> list[dict]:
         results.append(item)
 
     return results
+
+def is_noise_title(title: str) -> bool:
+    title = (title or "").strip()
+
+    # 숫자형 통계 제거
+    if re.search(r"\d+\s*건", title):
+        return True
+
+    # 너무 짧거나 일반 텍스트
+    if len(title) < 10:
+        return True
+
+    # 메뉴형
+    if any(x in title for x in [
+        "전체", "현황", "정보", "안내", "소개", "목록",
+        "통합", "조회", "검색", "결과", "뉴스레터"
+    ]):
+        return True
+
+    # 포괄 제목 (쓰레기)
+    if title in [
+        "기업마당 공고",
+        "사업공고",
+        "지원사업",
+        "공고"
+    ]:
+        return True
+
+    return False

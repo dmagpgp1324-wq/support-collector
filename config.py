@@ -1,9 +1,3 @@
-# config.py
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-}
-
 SOURCES = {
     "kstartup": {
         "enabled": True
@@ -21,7 +15,7 @@ SOURCES = {
         ]
     },
     "smallbiz": {
-        "enabled": True,
+        "enabled": False,
         "list_url": "https://www.sbiz24.kr/#/pbanc"
     },
     "mss": {
@@ -29,7 +23,7 @@ SOURCES = {
         "list_url": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
     },
     "ccei": {
-        "enabled": True,
+        "enabled": False,
         "list_urls": [
             "https://ccei.creativekorea.or.kr/",
             "https://www.k-startup.go.kr/web/contents/bizpbanc-local.do"
