@@ -20,21 +20,19 @@ SOURCES = {
             "https://www.modoo.or.kr/project/list"
         ]
     },
-
     "smallbiz": {
-        "enabled": False,
+        "enabled": True,
         "list_url": "https://www.sbiz24.kr/#/pbanc"
     },
-
     "mss": {
         "enabled": True,
         "list_url": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
     },
-
     "ccei": {
-        "enabled": False,
+        "enabled": True,
         "list_urls": [
-            "https://ccei.creativekorea.or.kr/"
+            "https://ccei.creativekorea.or.kr/",
+            "https://www.k-startup.go.kr/web/contents/bizpbanc-local.do"
         ]
     }
 }

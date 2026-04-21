@@ -215,8 +215,53 @@ def fetch_modoo():
 
 
 def fetch_smallbiz():
-    # 다음 단계에서 실제 수집 붙일 예정
-    return []
+    items = []
+    seen = set()
+
+    url = SOURCES["smallbiz"]["list_url"]
+
+    try:
+        res = safe_get(url)
+    except Exception:
+        return items
+
+    soup = BeautifulSoup(res.text, "html.parser")
+    links = soup.find_all("a", href=True)
+
+    for a in links:
+        title = clean_text(a.get_text(" ", strip=True))
+        href = a["href"].strip()
+
+        if not title or len(title) < 8:
+            continue
+
+        if not any(k in title for k in ["공고", "모집", "지원", "사업", "소상공인", "바우처", "패키지"]):
+            continue
+
+        full_url = urljoin(url, href)
+        parent_text = clean_text(a.parent.get_text(" ", strip=True)) if a.parent else title
+        start_date, end_date = extract_dates(parent_text + " " + title)
+
+        item = build_item(
+            source="소상공인24",
+            title=title,
+            summary="소상공인24 공고",
+            content=parent_text,
+            region=title,
+            agency="소상공인24",
+            category="지원사업",
+            url=full_url,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        key = (item["title"], item["url"])
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+
+    return items
 
 
 def fetch_mss():
@@ -237,7 +282,6 @@ def fetch_mss():
         if not title or len(title) < 8:
             continue
 
-        # 사업공고성 제목만 우선 수집
         if not any(k in title for k in ["공고", "모집", "지원사업", "지원", "사업화", "바우처", "패키지"]):
             continue
 
@@ -268,8 +312,52 @@ def fetch_mss():
 
 
 def fetch_ccei():
-    # 다음 단계에서 실제 수집 붙일 예정
-    return []
+    items = []
+    seen = set()
+
+    for list_url in SOURCES["ccei"]["list_urls"]:
+        try:
+            res = safe_get(list_url)
+        except Exception:
+            continue
+
+        soup = BeautifulSoup(res.text, "html.parser")
+        links = soup.find_all("a", href=True)
+
+        for a in links:
+            title = clean_text(a.get_text(" ", strip=True))
+            href = a["href"].strip()
+
+            if not title or len(title) < 8:
+                continue
+
+            if not any(k in title for k in ["공고", "모집", "지원", "창업", "스타트업", "실증", "프로그램"]):
+                continue
+
+            full_url = urljoin(list_url, href)
+            parent_text = clean_text(a.parent.get_text(" ", strip=True)) if a.parent else title
+            start_date, end_date = extract_dates(parent_text + " " + title)
+
+            item = build_item(
+                source="창조경제혁신센터",
+                title=title,
+                summary="창조경제혁신센터 공고",
+                content=parent_text,
+                region=title,
+                agency="창조경제혁신센터",
+                category="지원사업",
+                url=full_url,
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+            key = (item["title"], item["url"])
+            if key in seen:
+                continue
+            seen.add(key)
+            items.append(item)
+
+    return items
 
 
 def collect_all():
