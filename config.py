@@ -21,15 +21,16 @@ SOURCES = {
         ]
     },
 
-    # 다음 단계용 확장 소스 (구조만 준비)
     "smallbiz": {
         "enabled": False,
         "list_url": "https://www.sbiz24.kr/#/pbanc"
     },
+
     "mss": {
-        "enabled": False,
+        "enabled": True,
         "list_url": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
     },
+
     "ccei": {
         "enabled": False,
         "list_urls": [
